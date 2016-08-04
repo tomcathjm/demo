@@ -66,7 +66,7 @@ public class ViewPagerIndicator extends LinearLayout {
         //初始化画笔
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mPaint.setColor(Color.parseColor("#ffffff"));
+        mPaint.setColor(Color.parseColor("#000000"));
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setPathEffect(new CornerPathEffect(3));
 
@@ -158,7 +158,7 @@ public class ViewPagerIndicator extends LinearLayout {
         }
     }
     //动态创建 TabT
-    private static final int COLOR_TEXT = 0x55FFFFFF;
+    private static final int COLOR_TEXT = 0x99999999;
 
     private View getTab(String title) {
 
