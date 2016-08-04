@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -16,9 +17,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import com.example.beggar.myapplication.R;
-
 import java.util.List;
 
 /**
@@ -28,22 +27,36 @@ public class ViewPagerIndicator extends LinearLayout {
 
     //画笔
     private Paint mPaint;
+
     //构建三角形
     private Path mPath;
+
     //三角形宽度
     private int mTriangleWidth;
+
     //三角形高度
     private int mTriangleHeight;
+
     // 三角形宽度 和 Tab 长度的比例（可以对外暴露，让用户自定义）
     private static final float RADIO_TRIANGLE_WIDTH = 1 / 6F;
+
     //三角形初始化时在X轴上的平移距离
     private int mInitTranslationX;
+
     //三角形平移的距离
     private int mTranlationX;
 
+    //可见tab 的长度
     private int mTabVisibleCount;
 
+    //tab 默认长度
     private static final int COUNT_DEFAULT_TAB = 4;
+    //三角形的最大宽度
+    private final int DEMENSION_TRIANGLE_WIDTH = (int) (getSceenWidth() / 3 * RADIO_TRIANGLE_WIDTH);
+
+    //tab 文本的颜色
+    private static final int COLOR_TEXT = 0x99999999;
+    private static final int COLOR_TEXT_TRUE = 0x00112233;
 
 
     public ViewPagerIndicator(Context context) {
@@ -76,8 +89,14 @@ public class ViewPagerIndicator extends LinearLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+
         //初始化三角形的宽度
         mTriangleWidth = (int) (w / mTabVisibleCount * RADIO_TRIANGLE_WIDTH);
+
+        //Math.min(int,int); 两个数值中取最小的
+        mTriangleWidth = Math.min(mTriangleWidth,DEMENSION_TRIANGLE_WIDTH);
+
+        //初始化三角形在X轴的平移量
         mInitTranslationX = w / mTabVisibleCount / 2 - mTriangleWidth / 2;
 
         //初始化三角形
@@ -85,6 +104,10 @@ public class ViewPagerIndicator extends LinearLayout {
 
     }
 
+    /**
+     * 初始化三角形的 Path
+     *      如果不需要三角形指示器。可以在这里重新构造需要绘制的图形指示器
+     */
     private void initTriangle() {
         mPath = new Path();
         mPath.moveTo(0, 0);
@@ -96,7 +119,11 @@ public class ViewPagerIndicator extends LinearLayout {
 
     }
 
-    //View绘制自动回调方法
+    /**
+     * 绘制指示器
+     *      可以在这个方法里面绘制任何指示器的样式
+     * @param canvas
+     */
     @Override
     protected void dispatchDraw(Canvas canvas) {
 
@@ -143,22 +170,20 @@ public class ViewPagerIndicator extends LinearLayout {
             lp.width = getSceenWidth() / mTabVisibleCount;
             view.setLayoutParams(lp);
         }
-
+        setTabClickEvent();
     }
-
-    private List<String> titles;
 
     //动态的添加 Tab
     public void setTabTitle(List<String> titles) {
         if (titles != null && titles.size() > 0)
-            this.titles = titles;
             this.removeAllViews();
         for (String title : titles) {
             this.addView(getTab(title));
         }
+        setTabClickEvent();
     }
     //动态创建 TabT
-    private static final int COLOR_TEXT = 0x99999999;
+
 
     private View getTab(String title) {
 
@@ -174,6 +199,49 @@ public class ViewPagerIndicator extends LinearLayout {
         return mTextView;
     }
 
+    /**
+     * tab设置点击事件
+     */
+    private void setTabClickEvent(){
+        int mCount = getChildCount();
+        for (int i = 0 ; i < mCount ; i ++){
+            final int j = i;
+            View view = getChildAt(i);
+            if (view instanceof TextView){
+                view.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mViewPager.setCurrentItem(j);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 选中tab高亮文本
+     * @return
+     */
+    private void highLightText(int position){
+        resetTextColor();
+        View view = getChildAt(position);
+        if (view instanceof TextView){
+            ((TextView) view).setTextColor(COLOR_TEXT_TRUE);
+        }
+    }
+
+    /**
+     * 重置文本颜色
+     * @return
+     */
+    private void resetTextColor(){
+        for (int i = 0 ;i < getChildCount() ; i++){
+            View view = getChildAt(i);
+            if (view instanceof TextView){
+                ((TextView) view).setTextColor(COLOR_TEXT);
+            }
+        }
+    }
     //获得屏幕的宽度
     private int getSceenWidth() {
 
@@ -183,4 +251,59 @@ public class ViewPagerIndicator extends LinearLayout {
 
         return outMetrics.widthPixels;
     }
+
+    /**
+     * 对用户暴露的接口，设置 ViewPager
+     * @param viewPager
+     */
+    private ViewPager mViewPager;
+    public void setViewPager(ViewPager viewPager,int pos){
+
+        this.mViewPager = viewPager;
+
+        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                // 三角形的偏移量
+                // tabWidth * positionOffset + position * tabWidth
+               scroll(position,positionOffset);
+                if (listener != null){
+                    listener.onPageScrolled(position,positionOffset,positionOffsetPixels);
+                }
+                highLightText(position);
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (listener != null){
+                    listener.onPageSelected(position);
+                }
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (listener != null){
+                    listener.onPageScrollStateChanged(state);
+                }
+
+            }
+        });
+        mViewPager.setCurrentItem(pos);
+        highLightText(pos);
+    }
+
+    interface OnPagerChangeListener{
+        void onPageScrolled(int position, float positionOffset, int positionOffsetPixels);
+        void onPageSelected(int position);
+        void onPageScrollStateChanged(int state);
+    }
+
+    private OnPagerChangeListener listener;
+
+    public void setOnPagerChangeListener(OnPagerChangeListener listener){
+        this.listener = listener;
+    }
+
 }

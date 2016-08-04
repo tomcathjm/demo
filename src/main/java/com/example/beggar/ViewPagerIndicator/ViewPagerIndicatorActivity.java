@@ -36,17 +36,20 @@ public class ViewPagerIndicatorActivity extends FragmentActivity {
         setContentView(R.layout.viewpagerindicato_layout);
         ButterKnife.bind(this);
 
-        mIndicator.setTabTitle(mTitles);
-
         initData();
 
+        mIndicator.setViewPager(viewpager,0);
+        mIndicator.setTabTitle(mTitles);
         viewpager.setAdapter(adapter);
-        viewpager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+
+        /**
+         * 对外暴露的ViewPager 滑动接口 提交给用户做其他的操作
+          */
+        mIndicator.setOnPagerChangeListener(new ViewPagerIndicator.OnPagerChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                // 三角形的偏移量
-                // tabWidth * positionOffset + position * tabWidth
-                mIndicator.scroll(position,positionOffset);
+
             }
 
             @Override
@@ -56,9 +59,10 @@ public class ViewPagerIndicatorActivity extends FragmentActivity {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
+//                Toast.makeText(ViewPagerIndicatorActivity.this, "页面状态改变了", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
     private void initData() {
