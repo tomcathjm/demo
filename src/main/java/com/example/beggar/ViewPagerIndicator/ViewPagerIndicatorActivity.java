@@ -25,7 +25,7 @@ public class ViewPagerIndicatorActivity extends FragmentActivity {
     @Bind(R.id.viewpager)
     ViewPager viewpager;
 
-    private List<String> mTitles = Arrays.asList("短信", "电话", "游戏1", "游戏2", "游戏3", "游戏4", "游戏5");
+    private List<String> mTitles = Arrays.asList("热点", "订阅", "游戏", "娱乐", "科技", "体育");
     private List<ViewPagerFragment> mContents = new ArrayList<ViewPagerFragment>();
 
     private FragmentPagerAdapter adapter;
@@ -38,7 +38,7 @@ public class ViewPagerIndicatorActivity extends FragmentActivity {
 
         initData();
 
-        mIndicator.setViewPager(viewpager,0);
+        mIndicator.setViewPager(viewpager,0,mTitles.size());
         mIndicator.setTabTitle(mTitles);
         viewpager.setAdapter(adapter);
 

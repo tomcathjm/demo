@@ -49,14 +49,14 @@ public class ViewPagerIndicator extends LinearLayout {
     //可见tab 的长度
     private int mTabVisibleCount;
 
-    //tab 默认长度
-    private static final int COUNT_DEFAULT_TAB = 4;
+    // tab 长度
+    private  int COUNT_DEFAULT_TAB;
     //三角形的最大宽度
     private final int DEMENSION_TRIANGLE_WIDTH = (int) (getSceenWidth() / 3 * RADIO_TRIANGLE_WIDTH);
 
     //tab 文本的颜色
-    private static final int COLOR_TEXT = 0x99999999;
-    private static final int COLOR_TEXT_TRUE = 0x00112233;
+    private static final String COLOR_TEXT = "#38D3A9";
+    private static final String COLOR_TEXT_TRUE = "#FF0000";
 
 
     public ViewPagerIndicator(Context context) {
@@ -79,8 +79,9 @@ public class ViewPagerIndicator extends LinearLayout {
         //初始化画笔
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mPaint.setColor(Color.parseColor("#000000"));
+        mPaint.setColor(Color.parseColor("#38d3a9"));
         mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setStrokeWidth(5);
         mPaint.setPathEffect(new CornerPathEffect(3));
 
     }
@@ -91,16 +92,19 @@ public class ViewPagerIndicator extends LinearLayout {
         super.onSizeChanged(w, h, oldw, oldh);
 
         //初始化三角形的宽度
-        mTriangleWidth = (int) (w / mTabVisibleCount * RADIO_TRIANGLE_WIDTH);
+//        mTriangleWidth = (int) (w / mTabVisibleCount * RADIO_TRIANGLE_WIDTH);
 
         //Math.min(int,int); 两个数值中取最小的
-        mTriangleWidth = Math.min(mTriangleWidth,DEMENSION_TRIANGLE_WIDTH);
+//        mTriangleWidth = Math.min(mTriangleWidth,DEMENSION_TRIANGLE_WIDTH);
 
         //初始化三角形在X轴的平移量
-        mInitTranslationX = w / mTabVisibleCount / 2 - mTriangleWidth / 2;
+//        mInitTranslationX = w / mTabVisibleCount / 2 - mTriangleWidth / 2;
+
+        //初始化平移量
+        mInitTranslationX = w / mTabVisibleCount / 4;
 
         //初始化三角形
-        initTriangle();
+//        initTriangle();
 
     }
 
@@ -128,9 +132,12 @@ public class ViewPagerIndicator extends LinearLayout {
     protected void dispatchDraw(Canvas canvas) {
 
         canvas.save();
+        // 绘制三角形
+//        canvas.translate(mInitTranslationX + mTranlationX, getHeight() + 2);
+//        canvas.drawPath(mPath, mPaint);
 
-        canvas.translate(mInitTranslationX + mTranlationX, getHeight() + 2);
-        canvas.drawPath(mPath, mPaint);
+        //绘制直线
+        canvas.drawLine(mInitTranslationX+mTranlationX,getHeight() - 8,getSceenWidth() / mTabVisibleCount - mInitTranslationX+mTranlationX,getHeight() - 8,mPaint);
 
         canvas.restore();
 
@@ -140,6 +147,7 @@ public class ViewPagerIndicator extends LinearLayout {
     //指示器跟随手指滚动
     public void scroll(int positon, float offset) {
         int tabWidth = getWidth() / mTabVisibleCount;
+        //切换tab的平移量
         mTranlationX = (int) (tabWidth * (positon + offset));
 
         if (positon >= (mTabVisibleCount - 2) && positon < getChildCount() - 2 && offset > 0 && getChildCount() > mTabVisibleCount) {
@@ -193,7 +201,7 @@ public class ViewPagerIndicator extends LinearLayout {
         mTextView.setText(title);
         mTextView.setGravity(Gravity.CENTER);
         mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,16);
-        mTextView.setTextColor(COLOR_TEXT);
+        mTextView.setTextColor(Color.parseColor(COLOR_TEXT));
         mTextView.setLayoutParams(lp);
 
         return mTextView;
@@ -226,7 +234,7 @@ public class ViewPagerIndicator extends LinearLayout {
         resetTextColor();
         View view = getChildAt(position);
         if (view instanceof TextView){
-            ((TextView) view).setTextColor(COLOR_TEXT_TRUE);
+            ((TextView) view).setTextColor(Color.parseColor(COLOR_TEXT_TRUE));
         }
     }
 
@@ -238,7 +246,7 @@ public class ViewPagerIndicator extends LinearLayout {
         for (int i = 0 ;i < getChildCount() ; i++){
             View view = getChildAt(i);
             if (view instanceof TextView){
-                ((TextView) view).setTextColor(COLOR_TEXT);
+                ((TextView) view).setTextColor(Color.parseColor(COLOR_TEXT));
             }
         }
     }
@@ -252,12 +260,19 @@ public class ViewPagerIndicator extends LinearLayout {
         return outMetrics.widthPixels;
     }
 
-    /**
-     * 对用户暴露的接口，设置 ViewPager
-     * @param viewPager
-     */
+
     private ViewPager mViewPager;
-    public void setViewPager(ViewPager viewPager,int pos){
+
+    /**
+     * 占用了用户对ViewPager的滑动接口，为了方便用户自定义这个接口事件，所以对外暴露出去一个接口
+     *
+     * @param viewPager 绑定ViewPager
+     * @param pos 默认选中的 tab 下标
+     * @param size tab的个数 （对外暴露，直接在这个方法传进来，不需要在布局中设置）
+     */
+    public void setViewPager(ViewPager viewPager,int pos,int size){
+
+        COUNT_DEFAULT_TAB = size;
 
         this.mViewPager = viewPager;
 
